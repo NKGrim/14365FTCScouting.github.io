@@ -175,6 +175,10 @@
       New team:
       <input id="team-input" type="text" placeholder="Team name or number" autocomplete="off" required>
     </label>
+    <label>
+      Write password:
+      <input id="write-password" type="password" placeholder="Password for write access" autocomplete="off">
+    </label>
     <button type="submit">Add team</button>
   </form>
 
@@ -199,6 +203,8 @@
       doc
     } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
 
+    const WRITE_PASSWORD = 'silverknights14365';
+
     const firebaseConfig = {
       apiKey: 'YAIzaSyD5O49GxXZm-dgMzwcSQtJvgiN-922rLxc',
       authDomain: 'ftcscouting-7d973.firebaseapp.com',
@@ -215,12 +221,23 @@
     const teamsList = document.getElementById('teams-list');
     const teamForm = document.getElementById('team-form');
     const teamInput = document.getElementById('team-input');
+    const passwordInput = document.getElementById('write-password');
     const searchInput = document.getElementById('search-input');
 
     let cachedTeams = [];
 
     function setStatus(message) {
       // no-op: remove status display
+    }
+
+    function writeAllowed() {
+      return passwordInput.value === WRITE_PASSWORD;
+    }
+
+    function requireWritePassword() {
+      if (writeAllowed()) return true;
+      alert('Enter the write password to modify data.');
+      return false;
     }
 
     async function loadTeams() {
@@ -275,6 +292,7 @@
         noteBtn.textContent = 'Add note';
         noteBtn.style.marginLeft = '0.5rem';
         noteBtn.addEventListener('click', async () => {
+          if (!requireWritePassword()) return;
           const text = noteInput.value.trim();
           if (!text) return;
           setStatus('Saving note...');
@@ -294,6 +312,7 @@
         delTeamBtn.textContent = 'Delete team';
         delTeamBtn.style.marginLeft = '0.5rem';
         delTeamBtn.addEventListener('click', async () => {
+          if (!requireWritePassword()) return;
           await deleteTeam(teamId);
         });
         li.appendChild(delTeamBtn);
@@ -337,6 +356,7 @@
               cancelBtn.style.marginLeft = '0.25rem';
 
               saveBtn.addEventListener('click', async () => {
+                if (!requireWritePassword()) return;
                 const newText = editInput.value.trim();
                 if (!newText) return;
                 setStatus('Saving...');
@@ -362,6 +382,7 @@
             });
 
             del.addEventListener('click', async () => {
+              if (!requireWritePassword()) return;
               setStatus('Deleting note...');
               await deleteDoc(doc(db, 'teams', teamId, 'notes', note.id));
               await loadTeams();
@@ -378,6 +399,7 @@
     }
 
     async function deleteTeam(teamId) {
+      if (!requireWritePassword()) return;
       if (!confirm('Delete this team and all its notes? This cannot be undone.')) return;
       setStatus('Deleting team...');
       const notesQuery = query(collection(db, 'teams', teamId, 'notes'), orderBy('createdAt', 'desc'));
@@ -391,6 +413,7 @@
 
     teamForm.addEventListener('submit', async event => {
       event.preventDefault();
+      if (!requireWritePassword()) return;
       const name = teamInput.value.trim();
       if (!name) return;
 
