@@ -3,28 +3,185 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Firebase on GitHub Pages</title>
+  <title>FTC Scouting Dashboard</title>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1rem; }
-    input, button { font-size: 1rem; padding: 0.5rem; }
-    ul { padding-left: 1.2rem; }
+    :root {
+      color-scheme: dark;
+      --bg: #08111b;
+      --surface: #121d2c;
+      --surface-strong: #1b2b40;
+      --border: rgba(255,255,255,0.12);
+      --text: #e8f2ff;
+      --muted: #9fb3ca;
+      --accent: #36c5ff;
+      --accent-strong: #00a5ff;
+      --danger: #ff5c82;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, system-ui, sans-serif;
+      background: radial-gradient(circle at top left, rgba(54,197,255,0.12), transparent 25%),
+        linear-gradient(180deg, #06121e 0%, #07151f 35%, #08111b 100%);
+      color: var(--text);
+    }
+
+    main {
+      max-width: 900px;
+      margin: 2rem auto 3rem;
+      padding: 1.5rem;
+      background: rgba(13, 25, 40, 0.92);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.25);
+    }
+
+    h1 {
+      margin: 0 0 0.5rem;
+      font-size: clamp(2rem, 3vw, 3rem);
+      letter-spacing: -0.04em;
+    }
+
+    h2 {
+      margin: 2rem 0 0.75rem;
+      color: var(--accent);
+    }
+
+    p {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    label {
+      flex: 1;
+      min-width: 220px;
+      color: var(--text);
+    }
+
+    input, button {
+      font: inherit;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+    }
+
+    input {
+      width: 100%;
+      min-height: 44px;
+      padding: 0.85rem 1rem;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    input:focus {
+      border-color: rgba(54,197,255,0.65);
+      box-shadow: 0 0 0 4px rgba(54,197,255,0.1);
+    }
+
+    button {
+      cursor: pointer;
+      min-height: 44px;
+      padding: 0 1.25rem;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+      color: #071118;
+      font-weight: 700;
+      transition: transform 0.2s ease, filter 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+    }
+
+    #search-input {
+      border-radius: 16px;
+      padding: 0.85rem 1rem;
+    }
+
+    ul {
+      padding-left: 1rem;
+      margin: 0;
+      list-style: none;
+    }
+
+    #teams-list > li {
+      margin-bottom: 2rem;
+      padding: 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: rgba(255,255,255,0.02);
+    }
+
+    #teams-list li > ul {
+      margin-top: 0.75rem;
+    }
+
+    #teams-list li > ul > li {
+      margin-bottom: 0.45rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.55rem 0.6rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.04);
+    }
+
+    strong {
+      font-size: 1.05rem;
+      letter-spacing: 0.01em;
+    }
+
+    button.small {
+      padding: 0.45rem 0.75rem;
+      font-size: 0.95rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    button.small:hover {
+      filter: brightness(1.1);
+      transform: none;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
   </style>
 </head>
 <body>
-  <h1>Firebase + GitHub Pages</h1>
-  <p>This page uses Firebase Firestore from client-side code on GitHub Pages.</p>
-
-  <form id="note-form">
+  <main>
+    <h1>14365 - Summit Knights - Scouting Dashboard</h1>
+    <p>Track teams, capture match notes, and manage scouting data</p>
+  <form id="team-form">
     <label>
-      New note:
-      <input id="note-input" type="text" placeholder="Write something" autocomplete="off" required>
+      New team:
+      <input id="team-input" type="text" placeholder="Team name or number" autocomplete="off" required>
     </label>
-    <button type="submit">Save</button>
+    <button type="submit">Add team</button>
   </form>
 
-  <h2>Saved notes</h2>
-  <ul id="notes-list"></ul>
-  <p id="status"></p>
+  <h2>Teams</h2>
+  <input id="search-input" type="search" placeholder="Search teams by name" style="display:block;margin:0.5rem 0;width:100%;padding:0.5rem;">
+  <ul id="teams-list"></ul>
+  </main>
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
@@ -36,73 +193,230 @@
       getDocs,
       query,
       orderBy,
-      serverTimestamp
+      serverTimestamp,
+      deleteDoc,
+      updateDoc,
+      doc
     } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js';
 
     const firebaseConfig = {
-      apiKey: 'YOUR_API_KEY',
-      authDomain: 'YOUR_PROJECT_ID.firebaseapp.com',
-      projectId: 'YOUR_PROJECT_ID',
-      storageBucket: 'YOUR_PROJECT_ID.appspot.com',
-      messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-      appId: 'YOUR_APP_ID'
+      apiKey: 'YAIzaSyD5O49GxXZm-dgMzwcSQtJvgiN-922rLxc',
+      authDomain: 'ftcscouting-7d973.firebaseapp.com',
+      projectId: 'ftcscouting-7d973',
+      storageBucket: 'tcscouting-7d973.firebasestorage.app',
+      messagingSenderId: '962743777529',
+      appId: '1:962743777529:web:aac5e0be082935244fca28'
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    const statusEl = document.getElementById('status');
-    const notesList = document.getElementById('notes-list');
-    const noteForm = document.getElementById('note-form');
-    const noteInput = document.getElementById('note-input');
+    const teamsList = document.getElementById('teams-list');
+    const teamForm = document.getElementById('team-form');
+    const teamInput = document.getElementById('team-input');
+    const searchInput = document.getElementById('search-input');
 
-    async function setStatus(message) {
-      statusEl.textContent = message;
+    let cachedTeams = [];
+
+    function setStatus(message) {
+      // no-op: remove status display
     }
 
-    async function loadNotes() {
-      notesList.innerHTML = '';
-      setStatus('Loading notes...');
+    async function loadTeams() {
+      teamsList.innerHTML = '';
+      setStatus('Loading teams...');
 
-      const notesQuery = query(collection(db, 'notes'), orderBy('createdAt', 'desc'));
-      const snapshot = await getDocs(notesQuery);
+      cachedTeams = [];
+      const teamsQuery = query(collection(db, 'teams'), orderBy('createdAt', 'desc'));
+      const teamsSnap = await getDocs(teamsQuery);
 
-      if (snapshot.empty) {
-        notesList.innerHTML = '<li>No notes yet.</li>';
-      } else {
-        snapshot.forEach(doc => {
-          const note = doc.data();
-          const li = document.createElement('li');
-          li.textContent = note.text || 'Empty note';
-          notesList.appendChild(li);
-        });
+      if (teamsSnap.empty) {
+        teamsList.innerHTML = '<li>No teams yet.</li>';
+        setStatus('Loaded teams.');
+        return;
       }
 
-      setStatus('Loaded notes.');
+      for (const teamDoc of teamsSnap.docs) {
+        const team = teamDoc.data();
+        const teamId = teamDoc.id;
+
+        const notesQuery = query(collection(db, 'teams', teamId, 'notes'), orderBy('createdAt', 'desc'));
+        const notesSnap = await getDocs(notesQuery);
+        const notes = notesSnap.docs.map(n => ({ id: n.id, ...n.data() }));
+
+        cachedTeams.push({ id: teamId, ...team, notes });
+      }
+
+      renderTeams(cachedTeams);
+      setStatus('Loaded teams.');
     }
 
-    noteForm.addEventListener('submit', async event => {
-      event.preventDefault();
-      const text = noteInput.value.trim();
-      if (!text) return;
+    function renderTeams(list) {
+      teamsList.innerHTML = '';
+      if (!list.length) {
+        teamsList.innerHTML = '<li>No teams found.</li>';
+        return;
+      }
 
-      setStatus('Saving note...');
-      await addDoc(collection(db, 'notes'), {
-        text,
+      for (const t of list) {
+        const teamId = t.id;
+        const li = document.createElement('li');
+        const title = document.createElement('strong');
+        title.textContent = t.name || '(unnamed)';
+        li.appendChild(title);
+
+        const noteInput = document.createElement('input');
+        noteInput.type = 'text';
+        noteInput.placeholder = 'Add note to this team';
+        noteInput.style.marginLeft = '0.5rem';
+
+        const noteBtn = document.createElement('button');
+        noteBtn.textContent = 'Add note';
+        noteBtn.style.marginLeft = '0.5rem';
+        noteBtn.addEventListener('click', async () => {
+          const text = noteInput.value.trim();
+          if (!text) return;
+          setStatus('Saving note...');
+          await addDoc(collection(db, 'teams', teamId, 'notes'), {
+            text,
+            createdAt: serverTimestamp()
+          });
+          noteInput.value = '';
+          await loadTeams();
+          setStatus('Saved.');
+        });
+
+        li.appendChild(noteInput);
+        li.appendChild(noteBtn);
+
+        const delTeamBtn = document.createElement('button');
+        delTeamBtn.textContent = 'Delete team';
+        delTeamBtn.style.marginLeft = '0.5rem';
+        delTeamBtn.addEventListener('click', async () => {
+          await deleteTeam(teamId);
+        });
+        li.appendChild(delTeamBtn);
+
+        const notesUl = document.createElement('ul');
+        if (!t.notes.length) {
+          const emptyLi = document.createElement('li');
+          emptyLi.textContent = 'No notes for this team.';
+          notesUl.appendChild(emptyLi);
+        } else {
+          for (const note of t.notes) {
+            const noteLi = document.createElement('li');
+            const textSpan = document.createElement('span');
+            textSpan.textContent = note.text || 'Empty note';
+            noteLi.appendChild(textSpan);
+
+            const editBtn = document.createElement('button');
+            editBtn.textContent = 'Edit';
+            editBtn.style.marginLeft = '0.5rem';
+            noteLi.appendChild(editBtn);
+
+            const del = document.createElement('button');
+            del.textContent = 'Delete';
+            del.style.marginLeft = '0.75rem';
+            noteLi.appendChild(del);
+
+            editBtn.addEventListener('click', () => {
+              const editInput = document.createElement('input');
+              editInput.type = 'text';
+              editInput.value = note.text || '';
+              noteLi.insertBefore(editInput, textSpan);
+              noteLi.removeChild(textSpan);
+              editBtn.style.display = 'none';
+              del.style.display = 'none';
+
+              const saveBtn = document.createElement('button');
+              saveBtn.textContent = 'Save';
+              saveBtn.style.marginLeft = '0.5rem';
+              const cancelBtn = document.createElement('button');
+              cancelBtn.textContent = 'Cancel';
+              cancelBtn.style.marginLeft = '0.25rem';
+
+              saveBtn.addEventListener('click', async () => {
+                const newText = editInput.value.trim();
+                if (!newText) return;
+                setStatus('Saving...');
+                await updateDoc(doc(db, 'teams', teamId, 'notes', note.id), {
+                  text: newText,
+                  updatedAt: serverTimestamp()
+                });
+                await loadTeams();
+                setStatus('Saved.');
+              });
+
+              cancelBtn.addEventListener('click', () => {
+                noteLi.insertBefore(textSpan, editInput);
+                noteLi.removeChild(editInput);
+                editBtn.style.display = '';
+                del.style.display = '';
+                saveBtn.remove();
+                cancelBtn.remove();
+              });
+
+              noteLi.appendChild(saveBtn);
+              noteLi.appendChild(cancelBtn);
+            });
+
+            del.addEventListener('click', async () => {
+              setStatus('Deleting note...');
+              await deleteDoc(doc(db, 'teams', teamId, 'notes', note.id));
+              await loadTeams();
+              setStatus('Note deleted.');
+            });
+
+            notesUl.appendChild(noteLi);
+          }
+        }
+
+        li.appendChild(notesUl);
+        teamsList.appendChild(li);
+      }
+    }
+
+    async function deleteTeam(teamId) {
+      if (!confirm('Delete this team and all its notes? This cannot be undone.')) return;
+      setStatus('Deleting team...');
+      const notesQuery = query(collection(db, 'teams', teamId, 'notes'), orderBy('createdAt', 'desc'));
+      const notesSnap = await getDocs(notesQuery);
+      const deletes = notesSnap.docs.map(noteDoc => deleteDoc(doc(db, 'teams', teamId, 'notes', noteDoc.id)));
+      await Promise.all(deletes);
+      await deleteDoc(doc(db, 'teams', teamId));
+      await loadTeams();
+      setStatus('Team deleted.');
+    }
+
+    teamForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      const name = teamInput.value.trim();
+      if (!name) return;
+
+      setStatus('Creating team...');
+      await addDoc(collection(db, 'teams'), {
+        name,
         createdAt: serverTimestamp()
       });
 
-      noteInput.value = '';
-      await loadNotes();
-      setStatus('Saved.');
+      teamInput.value = '';
+      await loadTeams();
+      setStatus('Team created.');
+    });
+
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.trim().toLowerCase();
+      if (!q) return renderTeams(cachedTeams);
+      const filtered = cachedTeams.filter(t => (t.name || '').toLowerCase().includes(q));
+      renderTeams(filtered);
     });
 
     signInAnonymously(auth)
       .then(() => setStatus('Connected anonymously to Firebase.'))
       .catch(error => setStatus('Firebase auth error: ' + error.message));
 
-    loadNotes().catch(error => setStatus('Error loading notes: ' + error.message));
+    loadTeams().catch(error => setStatus('Error loading teams: ' + error.message));
   </script>
 </body>
 </html>
