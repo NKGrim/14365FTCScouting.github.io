@@ -160,6 +160,48 @@
       transform: none;
     }
 
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 1rem;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      resize: vertical;
+      font: inherit;
+    }
+
+    #update-request-form label {
+      flex: 1 1 100%;
+    }
+
+    #request-access {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      margin-top: 1rem;
+    }
+
+    #request-access input {
+      min-width: 220px;
+    }
+
+    #requests-panel {
+      margin-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      padding-top: 1rem;
+    }
+
+    #requests-list li {
+      margin-bottom: 0.85rem;
+      padding: 1rem;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
     .meta {
       color: var(--muted);
       font-size: 0.95rem;
@@ -185,6 +227,31 @@
   <h2>Teams</h2>
   <input id="search-input" type="search" placeholder="Search teams by name" style="display:block;margin:0.5rem 0;width:100%;padding:0.5rem;">
   <ul id="teams-list"></ul>
+
+  <section id="update-request-section">
+    <h2>Request team update</h2>
+    <form id="update-request-form">
+      <label>
+        Team name/number:
+        <input id="request-team-input" type="text" placeholder="Team name or number" autocomplete="off" required>
+      </label>
+      <label>
+        Requested information:
+        <textarea id="request-info-input" placeholder="Describe the update you want"></textarea>
+      </label>
+      <button type="submit">Submit request</button>
+    </form>
+
+    <div id="request-access">
+      <button id="view-requests-button" type="button">Show requested updates</button>
+      <div class="meta">Use the password above to view requested updates.</div>
+    </div>
+
+    <div id="requests-panel" style="display:none;">
+      <h3>Requested updates</h3>
+      <ul id="requests-list"></ul>
+    </div>
+  </section>
   </main>
 
   <script type="module">
@@ -223,8 +290,37 @@
     const teamInput = document.getElementById('team-input');
     const passwordInput = document.getElementById('write-password');
     const searchInput = document.getElementById('search-input');
+    const updateRequestForm = document.getElementById('update-request-form');
+    const requestTeamInput = document.getElementById('request-team-input');
+    const requestInfoInput = document.getElementById('request-info-input');
+    const viewRequestsButton = document.getElementById('view-requests-button');
+    const requestsPanel = document.getElementById('requests-panel');
+    const requestsList = document.getElementById('requests-list');
 
     let cachedTeams = [];
+    let updateRequests = [];
+
+    async function loadUpdateRequests() {
+      const requestsQuery = query(collection(db, 'updateRequests'), orderBy('createdAt', 'desc'));
+      const requestsSnap = await getDocs(requestsQuery);
+      updateRequests = requestsSnap.docs.map(reqDoc => {
+        const data = reqDoc.data();
+        return {
+          id: reqDoc.id,
+          ...data,
+          requestedAt: data.createdAt?.toDate?.()?.toLocaleString() || data.requestedAt || 'Unknown time'
+        };
+      });
+    }
+
+    async function resolveRequest(requestId) {
+      if (!requireWritePassword()) return;
+      setStatus('Resolving request...');
+      await deleteDoc(doc(db, 'updateRequests', requestId));
+      await loadUpdateRequests();
+      renderUpdateRequests();
+      setStatus('Request resolved.');
+    }
 
     function setStatus(message) {
       // no-op: remove status display
@@ -427,6 +523,83 @@
       await loadTeams();
       setStatus('Team created.');
     });
+
+    updateRequestForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      const teamName = requestTeamInput.value.trim();
+      const requestedInfo = requestInfoInput.value.trim();
+      if (!teamName || !requestedInfo) {
+        alert('Please enter a team name/number and requested information.');
+        return;
+      }
+
+      setStatus('Saving request...');
+      await addDoc(collection(db, 'updateRequests'), {
+        teamName,
+        requestedInfo,
+        createdAt: serverTimestamp()
+      });
+
+      requestTeamInput.value = '';
+      requestInfoInput.value = '';
+
+      if (passwordInput.value === WRITE_PASSWORD) {
+        await loadUpdateRequests();
+        requestsPanel.style.display = 'block';
+        renderUpdateRequests();
+      } else {
+        alert('Request submitted. Use the write password above to view all requested updates.');
+      }
+    });
+
+    viewRequestsButton.addEventListener('click', async () => {
+      if (passwordInput.value !== WRITE_PASSWORD) {
+        alert('Invalid write key.');
+        return;
+      }
+
+      await loadUpdateRequests();
+      requestsPanel.style.display = 'block';
+      renderUpdateRequests();
+    });
+
+    function renderUpdateRequests() {
+      requestsList.innerHTML = '';
+      if (!updateRequests.length) {
+        requestsList.innerHTML = '<li class="meta">No requested updates yet.</li>';
+        return;
+      }
+
+      for (const update of updateRequests) {
+        const li = document.createElement('li');
+        const title = document.createElement('strong');
+        title.textContent = update.teamName;
+        li.appendChild(title);
+
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        meta.textContent = `Requested at ${update.requestedAt}`;
+        li.appendChild(meta);
+
+        const info = document.createElement('div');
+        info.textContent = update.requestedInfo;
+        li.appendChild(info);
+
+        const actions = document.createElement('div');
+        actions.style.marginTop = '0.75rem';
+
+        const resolveBtn = document.createElement('button');
+        resolveBtn.textContent = 'Resolve';
+        resolveBtn.className = 'small';
+        resolveBtn.addEventListener('click', async () => {
+          await resolveRequest(update.id);
+        });
+
+        actions.appendChild(resolveBtn);
+        li.appendChild(actions);
+        requestsList.appendChild(li);
+      }
+    }
 
     searchInput.addEventListener('input', () => {
       const q = searchInput.value.trim().toLowerCase();
