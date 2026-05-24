@@ -1,285 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FTC Scouting Dashboard</title>
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg: #08111b;
-      --surface: #121d2c;
-      --surface-strong: #1b2b40;
-      --border: rgba(255,255,255,0.12);
-      --text: #e8f2ff;
-      --muted: #9fb3ca;
-      --accent: #36c5ff;
-      --accent-strong: #00a5ff;
-      --danger: #ff5c82;
-    }
 
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: Inter, system-ui, sans-serif;
-      background: radial-gradient(circle at top left, rgba(54,197,255,0.12), transparent 25%),
-        linear-gradient(180deg, #06121e 0%, #07151f 35%, #08111b 100%);
-      color: var(--text);
-    }
-
-    main {
-      max-width: 900px;
-      margin: 2rem auto 3rem;
-      padding: 1.5rem;
-      background: rgba(13, 25, 40, 0.92);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.25);
-    }
-
-    h1 {
-      margin: 0 0 0.5rem;
-      font-size: clamp(2rem, 3vw, 3rem);
-      letter-spacing: -0.04em;
-    }
-
-    h2 {
-      margin: 2rem 0 0.75rem;
-      color: var(--accent);
-    }
-
-    p {
-      color: var(--muted);
-      line-height: 1.6;
-    }
-
-    form {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      align-items: center;
-      margin-bottom: 1rem;
-    }
-
-    label {
-      flex: 1;
-      min-width: 220px;
-      color: var(--text);
-    }
-
-    input, button {
-      font: inherit;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.05);
-      color: var(--text);
-    }
-
-    input {
-      width: 100%;
-      min-height: 44px;
-      padding: 0.85rem 1rem;
-      outline: none;
-      transition: border-color 0.2s ease;
-    }
-
-    input:focus {
-      border-color: rgba(54,197,255,0.65);
-      box-shadow: 0 0 0 4px rgba(54,197,255,0.1);
-    }
-
-    button {
-      cursor: pointer;
-      min-height: 44px;
-      padding: 0 1.25rem;
-      border: none;
-      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-      color: #071118;
-      font-weight: 700;
-      transition: transform 0.2s ease, filter 0.2s ease;
-    }
-
-    button:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.05);
-    }
-
-    #search-input {
-      border-radius: 16px;
-      padding: 0.85rem 1rem;
-    }
-
-    ul {
-      padding-left: 1rem;
-      margin: 0;
-      list-style: none;
-    }
-
-    #teams-list > li {
-      margin-bottom: 2rem;
-      padding: 1.25rem;
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      background: rgba(255,255,255,0.02);
-    }
-
-    .team-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .collapse-btn {
-      width: 36px;
-      height: 36px;
-      min-width: 36px;
-      padding: 0;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.08);
-      color: var(--text);
-      font-size: 1.1rem;
-      line-height: 1;
-    }
-
-    .team-content {
-      transition: max-height 0.25s ease, opacity 0.25s ease;
-    }
-
-    #teams-list li > ul {
-      margin-top: 0.75rem;
-    }
-
-    #teams-list li > ul > li {
-      margin-bottom: 0.45rem;
-      padding-left: 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.55rem 0.6rem;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.04);
-    }
-
-    strong {
-      font-size: 1.05rem;
-      letter-spacing: 0.01em;
-    }
-
-    button.small {
-      padding: 0.45rem 0.75rem;
-      font-size: 0.95rem;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.08);
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-
-    button.small:hover {
-      filter: brightness(1.1);
-      transform: none;
-    }
-
-    textarea {
-      width: 100%;
-      min-height: 100px;
-      padding: 1rem;
-      border-radius: 16px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.05);
-      color: var(--text);
-      resize: vertical;
-      font: inherit;
-    }
-
-    #update-request-form label {
-      flex: 1 1 100%;
-    }
-
-    #request-access {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      align-items: center;
-      margin-top: 1rem;
-    }
-
-    #request-access input {
-      min-width: 220px;
-    }
-
-    #requests-panel {
-      margin-top: 1.5rem;
-      border-top: 1px solid var(--border);
-      padding-top: 1rem;
-    }
-
-    #requests-list li {
-      margin-bottom: 0.85rem;
-      padding: 1rem;
-      border-radius: 18px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.08);
-    }
-
-    .meta {
-      color: var(--muted);
-      font-size: 0.95rem;
-    }
-  </style>
-</head>
-<body>
-  <main>
-    <h1>14365 - Summit Knights - Scouting Dashboard</h1>
-    <p>Track teams, capture match notes, and manage scouting data. Request information to be updated for your team</p>
-  <form id="team-form">
-    <label>
-      New team:
-      <input id="team-input" type="text" placeholder="Team name or number" autocomplete="off" required>
-    </label>
-    <label>
-      Write password:
-      <input id="write-password" type="password" placeholder="Password for write access" autocomplete="off">
-    </label>
-    <button type="submit">Add team</button>
-  </form>
-
-  <h2>Teams</h2>
-  <input id="search-input" type="search" placeholder="Search teams by name" style="display:block;margin:0.5rem 0;width:100%;padding:0.5rem;">
-  <ul id="teams-list"></ul>
-
-  <section id="update-request-section">
-    <h2>Request team update</h2>
-    <form id="update-request-form">
-      <label>
-        Team name/number:
-        <input id="request-team-input" type="text" placeholder="Team name or number" autocomplete="off" required>
-      </label>
-      <label>
-        Requested information:
-        <textarea id="request-info-input" placeholder="Describe the update you want"></textarea>
-      </label>
-      <button type="submit">Submit request</button>
-    </form>
-
-    <div id="request-access">
-      <button id="view-requests-button" type="button">Show requested updates</button>
-      <div class="meta">Use the password above to view requested updates.</div>
-    </div>
-
-    <div id="requests-panel" style="display:none;">
-      <h3>Requested updates</h3>
-      <ul id="requests-list"></ul>
-    </div>
-  </section>
-  </main>
-
-  <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js';
     import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js';
     import {
@@ -406,35 +125,18 @@
       const title = document.createElement('strong');
       title.textContent = t.name || '(unnamed)';
 
-      const delTeamBtn = document.createElement('button');
-      delTeamBtn.textContent = 'Delete team';
-      delTeamBtn.className = 'small';
-      delTeamBtn.style.marginLeft = '0.25rem';
-      delTeamBtn.addEventListener('click', async () => {
-        if (!requireWritePassword()) return;
-        await deleteTeam(teamId);
-      });
-
-      const titleGroup = document.createElement('div');
-      titleGroup.style.display = 'flex';
-      titleGroup.style.alignItems = 'center';
-      titleGroup.style.gap = '0.25rem';
-      titleGroup.appendChild(title);
-      titleGroup.appendChild(delTeamBtn);
-
       const toggleBtn = document.createElement('button');
       toggleBtn.type = 'button';
       toggleBtn.className = 'small collapse-btn';
-      toggleBtn.textContent = '▶';
-      toggleBtn.title = 'Expand team';
+      toggleBtn.textContent = '▼';
+      toggleBtn.title = 'Collapse team';
 
-      header.appendChild(titleGroup);
+      header.appendChild(title);
       header.appendChild(toggleBtn);
       li.appendChild(header);
 
       const teamContent = document.createElement('div');
       teamContent.className = 'team-content';
-      teamContent.style.display = 'none';
 
       const noteInput = document.createElement('input');
       noteInput.type = 'text';
@@ -443,7 +145,6 @@
 
       const noteBtn = document.createElement('button');
       noteBtn.textContent = 'Add note';
-      noteBtn.className = 'small';
       noteBtn.style.marginLeft = '0.5rem';
       noteBtn.addEventListener('click', async () => {
         if (!requireWritePassword()) return;
@@ -459,12 +160,21 @@
         setStatus('Saved.');
       });
 
+      const delTeamBtn = document.createElement('button');
+      delTeamBtn.textContent = 'Delete team';
+      delTeamBtn.style.marginLeft = '0.5rem';
+      delTeamBtn.addEventListener('click', async () => {
+        if (!requireWritePassword()) return;
+        await deleteTeam(teamId);
+      });
+
       const teamActions = document.createElement('div');
       teamActions.style.display = 'flex';
       teamActions.style.flexWrap = 'wrap';
       teamActions.style.gap = '0.5rem';
       teamActions.appendChild(noteInput);
       teamActions.appendChild(noteBtn);
+      teamActions.appendChild(delTeamBtn);
       teamContent.appendChild(teamActions);
 
         const notesUl = document.createElement('ul');
@@ -675,6 +385,4 @@
       .catch(error => setStatus('Firebase auth error: ' + error.message));
 
     loadTeams().catch(error => setStatus('Error loading teams: ' + error.message));
-  </script>
-</body>
-</html>
+  
